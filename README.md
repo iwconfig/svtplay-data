@@ -1,0 +1,2 @@
+# svtplay-data
+Every 6th hour a list of data of all content from SVTPlay is backed up in `singles_and_episodes` file. I made this mostly just for fun but it can be useful for retrieving information that is no longer available on SVTPlay.
