@@ -7,7 +7,7 @@ import svtapi
 import sys
 
 data = [] 
-for d in svtapi.all_titles_and_singles()[:10]: 
+for d in svtapi.all_titles_and_singles(): 
     try:
         data.append(svtapi.episode_info(d['contentUrl']))
     except svtapi.ParameterNotFound:
