@@ -3,15 +3,15 @@
 ## Add this to crontab with crontab -e
 ## * */6 * * * /PATH/TO/cronjob.sh
 ##
+## and run:
+##   $ git config credential.helper store
+##   $ git push
+## Enter your credentials to login automatically
+## from here on after.
 
 LOCKDIR=/tmp/svtplay-data.lock
 PIDFILE=$LOCKDIR/pid
 LOGFILE=/tmp/svtplay-data.log
-
-TMPDIR=/tmp/svtplay-data
-USERNAME='your username'
-PASSWORD='your password'
-EMAIL='your email'
 
 # make echo act as a logger
 function echo() {
@@ -60,19 +60,14 @@ else
 fi
 
 # main
-mkdir -p $TMPDIR
-cd $TMPDIR
-
-git clone https://github.com/iwconfig/svtplay-data .
-
-git config user.email $EMAIL
-git config user.name $USERNAME
+git reset --hard HEAD
+git clean -xffd
+git pull
 
 if ./gather_data.py; then
     echo "Data gathering went fine. Now making commit and pushing to github."
     git add *
     git commit -m "Daily data update: $(date '+%Y-%m-%d %H:%M:%S')"
-    git push -u https://$USERNAME:$PASSWORD@github.com/$USERNAME/svtplay-data master
-    rm -rf $TMPDIR
+    git push -u origin master
     exit 0
 fi
