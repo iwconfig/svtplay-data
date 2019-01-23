@@ -26,7 +26,8 @@ def stream_handler(data):
 
 def json_cleanup(data):
     for x in 'message', 'messages':
-        del data[x]
+        if data.get(x):
+            del data[x]
     return data
 
 singles_and_episodes = []
