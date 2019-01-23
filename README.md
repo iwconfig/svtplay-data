@@ -8,6 +8,8 @@ Add the following to crontab with `crontab -e`
 
 Next, run this and enter your credentials
 
+    git config user.email "your@email.org"
+    git config user.name "your name"
     git config credential.helper store
     git push
 
