@@ -26,7 +26,7 @@ def stream_handler(data):
 
 def json_cleanup(data):
     for x in 'message', 'messages':
-        del data[x]    
+        del data[x]
     return data
 
 singles_and_episodes = []
@@ -40,12 +40,12 @@ for d in svtapi.all_titles_and_singles():
         for dct in dctlist:
             dct = json_cleanup(dct)
         singles_and_episodes.extend(dctlist)
-    try: 
+    try:
         dct = svtapi.program_info_by_slug(d['contentUrl'])
         title_pages.append(json_cleanup(dct))
-    except svtapi.JSONResponseEmpty: 
+    except svtapi.JSONResponseEmpty:
         pass
-        
+
 data = [
     (singles_and_episodes, Path('./singles_and_episodes')),
     (title_pages, Path('./title_pages'))
@@ -59,7 +59,7 @@ for data, datafile in data:
             bakdata = json.load(bakfile)
 
         data.extend(bakdata)
-        data = list({v['id']:v for v in data}.values())
+        data = list({v.get('id') or v.get('articleId'):v for v in data}.values())
 
     with datafile.open('x') as outfile:
         stream_array = StreamArray(stream_handler(data))
@@ -68,4 +68,3 @@ for data, datafile in data:
 
     if datafile.with_suffix('.bak').is_file():
         datafile.with_suffix('.bak').unlink()
-
