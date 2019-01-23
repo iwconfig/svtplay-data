@@ -32,10 +32,11 @@ for d in svtapi.all_titles_and_singles():
             del dct[x]
         data.append(dct)
     except svtapi.ParameterNotFound:
-        for dct in svtapi.all_episodes_info_by_title(d['contentUrl']):
+        dctlist = svtapi.all_episodes_info_by_title(d['contentUrl'])
+        for dct in dctlist:
             for x in 'message', 'messages':
                 del dct[x]
-            data.append(dct)
+        data.extend(dctlist)
 
 datafile = Path('./singles_and_episodes')
 
@@ -50,7 +51,7 @@ if datafile.is_file():
 
 with datafile.open('x') as outfile:
     stream_array = StreamArray(stream_handler(data))
-    for dct in json.JSONEncoder(indent=2, ensure_ascii=False).iterencode(stream_array):
+    for dct in json.JSONEncoder(indent=2, ensure_ascii=False, sort_keys=True).iterencode(stream_array):
         outfile.write(dct)
 
 if datafile.with_suffix('.bak').is_file():
