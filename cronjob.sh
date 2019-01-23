@@ -12,6 +12,7 @@
 LOCKDIR=/tmp/svtplay-data.lock
 PIDFILE=$LOCKDIR/pid
 LOGFILE=/tmp/svtplay-data.log
+DIR=$HOME/scripts/svtplay-data
 
 # make echo act as a logger
 function echo() {
@@ -60,6 +61,7 @@ else
 fi
 
 # main
+cd $DIR
 git reset --hard HEAD
 git clean -xffd
 git pull
