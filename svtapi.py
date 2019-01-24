@@ -1,8 +1,9 @@
 from urllib.request import urlopen, Request
 from urllib.parse import urlparse, quote
+from http.client import RemoteDisconnected
 from functools import lru_cache, wraps
 from datetime import datetime, timedelta
-import json, re
+import json, re, time
 
 
 _API_URL                 = 'https://www.svtplay.se/api/'
@@ -60,7 +61,11 @@ def url_parameters(item):
 def _get(url):
     print(url)
     header = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:64.0) Gecko/20100101 Firefox/64.0'}
-    response = urlopen(Request(url, headers=header))
+    try:
+        response = urlopen(Request(url, headers=header))
+    except RemoteDisconnected:
+        time.sleep(3)
+        response = urlopen(Request(url, headers=header))
     data = response.read().decode('utf-8')
     if len(data) < 1: #or data in (None, 'null'):
         raise JSONResponseEmpty
