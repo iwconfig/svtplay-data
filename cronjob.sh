@@ -33,8 +33,6 @@ function cleanup {
         echo "Failed to remove lock directory '$LOCKDIR'"
         exit 1
     fi
-    echo "Removing log file '$LOGFILE'"
-    rm $LOGFILE
     exit 0
 }
 
