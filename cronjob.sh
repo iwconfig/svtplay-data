@@ -67,7 +67,7 @@ nice -10 git branch -D temp
 nice -10 git clean -xffd
 nice -10 git pull
 
-if nice -10 ./gather_data.py; then
+if nice -12 ./gather_data.py; then
     echo "Data gathering went fine. Now making commit and pushing to github."
     nice -10 git add *
     nice -10 git commit -m "Daily data update: $(date '+%Y-%m-%d %H:%M:%S')"
