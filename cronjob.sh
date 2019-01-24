@@ -70,4 +70,7 @@ if nice -10 ./gather_data.py; then
     nice -10 git commit -m "Daily data update: $(date '+%Y-%m-%d %H:%M:%S')"
     nice -10 git push -u origin master
     exit 0
+else
+    echo "Something went wrong, aborting..."
+    exit 1
 fi
