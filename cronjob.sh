@@ -60,14 +60,14 @@ fi
 
 # main
 cd $DIR
-git reset --hard HEAD
-git clean -xffd
-git pull
+nice -10 git reset --hard HEAD
+nice -10 git clean -xffd
+nice -10 git pull
 
-if ./gather_data.py; then
+if nice -10 ./gather_data.py; then
     echo "Data gathering went fine. Now making commit and pushing to github."
-    git add *
-    git commit -m "Daily data update: $(date '+%Y-%m-%d %H:%M:%S')"
-    git push -u origin master
+    nice -10 git add *
+    nice -10 git commit -m "Daily data update: $(date '+%Y-%m-%d %H:%M:%S')"
+    nice -10 git push -u origin master
     exit 0
 fi
