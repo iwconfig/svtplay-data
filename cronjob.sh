@@ -60,7 +60,10 @@ fi
 
 # main
 cd $DIR
-nice -10 git reset --hard HEAD
+nice -10 git checkout -b 'temp'
+nice -10 git branch -D master
+nice -10 git checkout master
+nice -10 git branch -D temp
 nice -10 git clean -xffd
 nice -10 git pull
 
