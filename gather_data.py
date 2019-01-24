@@ -68,13 +68,13 @@ def main():
 
             logging.info('Processing file: {}'.format(datafile.with_suffix('.bak')))
             
-            with datafile.with_suffix('.bak').open() as bakfile:
+            with datafile.with_suffix('.bak').open(encoding='utf8') as bakfile:
                 bakdata = json.load(bakfile)
 
             data.extend(bakdata)
             data = list({v.get('id') or v.get('articleId'):v for v in data}.values())
 
-        with datafile.open('x') as outfile:
+        with datafile.open('x', encoding='utf8') as outfile:
             logging.info('Saving to file: {}'.format(datafile))
             stream_array = StreamArray(stream_handler(data))
             for dct in json.JSONEncoder(indent=2, ensure_ascii=False, sort_keys=True).iterencode(stream_array):
