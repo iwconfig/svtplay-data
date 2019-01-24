@@ -7,6 +7,11 @@ import svtapi
 import traceback
 import logging
 
+logging.basicConfig(filename='/tmp/svtplay-data.log',
+                    level=logging.DEBUG,
+                    format='%(asctime)s: %(message)s',
+                    datefmt='%Y-%m-%d %H:%M:%S')
+
 class StreamArray(list):
     def __init__(self, generator):
         self.generator = generator
@@ -54,11 +59,15 @@ def main():
         (singles_and_episodes, Path('./singles_and_episodes')),
         (title_pages, Path('./title_pages'))
     ]
-
+    
+    logging.info('Data retrieval is complete')
+    
     for data, datafile in data:
         if datafile.is_file():
             datafile.rename(datafile.with_suffix('.bak'))
 
+            logging.info('Processing file: {}'.format(datafile.with_suffix('.bak')))
+            
             with datafile.with_suffix('.bak').open() as bakfile:
                 bakdata = json.load(bakfile)
 
@@ -66,15 +75,16 @@ def main():
             data = list({v.get('id') or v.get('articleId'):v for v in data}.values())
 
         with datafile.open('x') as outfile:
+            logging.info('Saving to file: {}'.format(datafile))
             stream_array = StreamArray(stream_handler(data))
             for dct in json.JSONEncoder(indent=2, ensure_ascii=False, sort_keys=True).iterencode(stream_array):
                 outfile.write(dct)
 
         if datafile.with_suffix('.bak').is_file():
+            logging.info('Removing old file: {}'.format(datafile.with_suffix('.bak')))
             datafile.with_suffix('.bak').unlink()
 
 if __name__ == '__main__':
-    logging.basicConfig(filename='/tmp/svtplay-data.log',level=logging.DEBUG, format='%(asctime)s: %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
     try:
         logging.info('STARTING gathering of data')
         main()
