@@ -19,3 +19,9 @@ Next, run this and enter your credentials
     git push
 
 and from here on after you login automatically when pushing to repo.
+
+
+## TODO/CONSIDER
+
+* apply compression or
+* use sqlite database (have a look at [cannadayr/git-sqlite](https://github.com/cannadayr/git-sqlite))
