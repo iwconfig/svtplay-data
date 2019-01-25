@@ -1,7 +1,12 @@
 #!/usr/bin/env bash
 
-## Add this to crontab with crontab -e
-## * */6 * * * /PATH/TO/cronjob.sh
+## Add this cron rule with crontab -e (not the explanation tree)
+## 5 0,6,12,18 * * * /PATH/TO/cronjob.sh
+## | ¯¯¯¯¯¯¯¯¯\¯¯¯¯¯\
+## |           Run every day at 00:05, 06:05, 12:05 and 18:05.
+##  \          ¯¯¯¯¯¯¯¯¯¯¯¯¯    ¯¯¯¯¯  ¯¯¯¯¯  ¯¯¯¯¯     ¯¯¯¯¯
+##   Wait five minutes to let SVTPlay adjust their dataset, especially at 00:00.
+##   Should not be a problem but just to be safe.     
 ##
 ## and run:
 ##   $ git config credential.helper store
