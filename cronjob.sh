@@ -64,15 +64,18 @@ else
 fi
 
 # main
-cd $DIR
+cd $DIR || echo "Error, could not change directory to $DIR"
+
+echo "Pulling a clean slate of remote git repository..."
 nice -10 git checkout -b 'temp'
 nice -10 git branch -D master
 nice -10 git checkout master
 nice -10 git branch -D temp
 nice -10 git clean -xffd
-nice -10 git pull
-
-nice -10 tar xf singles_and_episodes.tar.xz title_pages.tar.xz
+nice -10 git pull || echo "Error, could not pull the latest from remote repository!"
+    
+echo "Decompressing data files..."
+nice -10 tar xf singles_and_episodes.tar.xz title_pages.tar.xz || echo "Error, decompression failed!"
 
 if nice -12 ./gather_data.py; then
     echo "Data gathering went fine. Now compressing file..."
