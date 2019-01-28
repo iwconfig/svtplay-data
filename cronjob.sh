@@ -75,10 +75,13 @@ nice -10 git clean -xffd
 nice -10 git pull || echo "Error, could not pull the latest from remote repository!"
     
 echo "Decompressing data files..."
-nice -10 tar xf singles_and_episodes.tar.xz title_pages.tar.xz || echo "Error, decompression failed!"
+for file in data/*.tar.xz; do
+    tar xf "$file" -C data || { echo "Error, decompression failed!"; exit 1; }
+done
 
 if nice -12 ./gather_data.py; then
     echo "Data gathering went fine. Now compressing file..."
+    cd $DIR/data
     nice -10 tar cJf singles_and_episodes.tar.xz singles_and_episodes
     nice -10 tar cJf title_pages.tar.xz title_pages
     
