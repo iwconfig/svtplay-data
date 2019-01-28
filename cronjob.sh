@@ -72,11 +72,20 @@ nice -10 git branch -D temp
 nice -10 git clean -xffd
 nice -10 git pull
 
+nice -10 tar xf singles_and_episodes.tar.xz title_pages.tar.xz
+
 if nice -12 ./gather_data.py; then
-    echo "Data gathering went fine. Now making commit and pushing to github."
-    nice -10 git add *
+    echo "Data gathering went fine. Now compressing file..."
+    nice -10 tar cJf singles_and_episodes.tar.xz singles_and_episodes
+    nice -10 tar cJf title_pages.tar.xz title_pages
+    
+    echo "Compression is done. Now making commit and pushing to github..."
+    nice -10 git add singles_and_episodes.tar.xz title_pages.tar.xz
     nice -10 git commit -m "Daily data update: $(date '+%Y-%m-%d %H:%M:%S')"
     nice -10 git push -u origin master
+
+    echo "Done. Now removing uncompressed files and then mission accomplished."
+    rm singles_and_episodes title_pages
     exit 0
 else
     echo "Something went wrong, aborting..."
