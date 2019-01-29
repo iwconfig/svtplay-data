@@ -6,7 +6,7 @@
 ## |           Run every day at 00:05, 06:05, 12:05 and 18:05.
 ##  \          ¯¯¯¯¯¯¯¯¯¯¯¯¯    ¯¯¯¯¯  ¯¯¯¯¯  ¯¯¯¯¯     ¯¯¯¯¯
 ##   Wait five minutes to let SVTPlay adjust their dataset, especially at 00:00.
-##   Should not be a problem but just to be safe.     
+##   Should not be a problem but just to be safe.
 ##
 ## and run:
 ##   $ git config credential.helper store
@@ -49,13 +49,13 @@ if mkdir $LOCKDIR 2>/dev/null; then
     echo "Acquired lock, running"
 else
     echo "Could not create lock directory '$LOCKDIR'."
-    if [ -f $PIDFILE ] && kill -0 $(cat $PIDFILE) 2>/dev/null; then	
+    if [ -f $PIDFILE ] && kill -0 $(cat $PIDFILE) 2>/dev/null; then
 	echo "Process is running with PID $(cat $PIDFILE)."
     else
 	if [ -w $LOCKDIR ]; then
 	    echo "The lock already exists, but no process is running..."
 	    echo "Trying to remove and restart. If no success, then try to remove it manually."
-	    trap "cleanup; $0" EXIT	    
+	    trap "cleanup; $0" EXIT
 	else
 	    echo "No write access!"
 	fi
@@ -63,28 +63,28 @@ else
     exit 1
 fi
 
-# main
-cd $DIR || echo "Error, could not change directory to $DIR"
 
+# main
 echo "Pulling a clean slate of remote git repository..."
+cd $DIR || echo "Error, could not change directory to $DIR"
 nice -10 git checkout -b 'temp'
 nice -10 git branch -D master
 nice -10 git checkout master
 nice -10 git branch -D temp
 nice -10 git clean -xffd
 nice -10 git pull || echo "Error, could not pull the latest from remote repository!"
-    
+
 echo "Decompressing data files..."
 for file in data/*.tar.xz; do
     tar xf "$file" -C data || { echo "Error, decompression failed!"; exit 1; }
 done
 
-echo "Running gather_data.py"
+echo "Running gather_data.py..."
 if nice -12 ./gather_data.py; then
     echo "Data gathering went fine."
     cd $DIR/data
 
-    echo "Checking if uncompressed data file contains new data"
+    echo "Checking if uncompressed data file contains new data..."
     for file in {singles_and_episodes,title_pages}; do
 	if [ $(stat -c %s $file) -gt $(stat -c %s ${file}.bak) ]; then
 	    echo "Yes, compressing file $file"
@@ -92,14 +92,20 @@ if nice -12 ./gather_data.py; then
 	else
 	    echo "No, not $file. Continuing..."
 	fi
-	echo "Removing uncompressed files: $file and ${file}.bak"
+	echo "Removing uncompressed files: $file and ${file}.bak..."
 	rm $file ${file}.bak
     done
-    
-    echo "Compression is done. Now making commit and pushing to github..."
+
+    echo "Compression is done. Now making commit..."
     nice -10 git add singles_and_episodes.tar.xz title_pages.tar.xz
     nice -10 git commit -m "Daily data update: $(date '+%Y-%m-%d %H:%M:%S')"
-    nice -10 git push -u origin master
+
+    echo "Removing old compressed data files from earlier commits..."
+    java -jar $DIR/bfg.jar -D '*.tar.xz' --private $DIR
+    git reflog expire --expire=now --all && git gc --prune=now --aggressive
+
+    echo "and pushing to github..."
+    nice -10 git push -f -u origin master
 
     echo "Done. Mission accomplished!"
     exit 0
