@@ -67,12 +67,23 @@ fi
 # main
 echo "Pulling a clean slate of remote git repository..."
 cd $DIR || echo "Error, could not change directory to $DIR"
-nice -10 git checkout -b 'temp'
+nice -10 git checkout -b temp
 nice -10 git branch -D master
 nice -10 git checkout master
 nice -10 git branch -D temp
 nice -10 git clean -xffd
 nice -10 git pull || echo "Error, could not pull the latest from remote repository!"
+
+echo "Downloading BFG Repo-Cleaner jar file to /tmp directory"
+curl -L -o /tmp/bfg.jar https://repo1.maven.org/maven2/com/madgag/bfg/1.13.0/bfg-1.13.0.jar
+
+echo "Removing old compressed data files from earlier commits..."
+java -jar /tmp/bfg.jar -D '*.tar.xz' --private $DIR
+git reflog expire --expire=now --all && git gc --prune=now --aggressive
+echo "Pushing changes to remote repo"
+git push -f
+echo ". Removing BFG Repo-Cleaner jar file..."
+rm /tmp/bfg.jar
 
 echo "Decompressing data files..."
 for file in data/*.tar.xz; do
@@ -96,18 +107,14 @@ if nice -12 ./gather_data.py; then
 	rm $file ${file}.bak
     done
 
-    echo "Compression is done. Now making commit..."
+    echo "Check/compression is done. Now making commit..."
     nice -10 git add singles_and_episodes.tar.xz title_pages.tar.xz
     nice -10 git commit -m "Daily data update: $(date '+%Y-%m-%d %H:%M:%S')"
 
-    echo "Removing old compressed data files from earlier commits..."
-    java -jar $DIR/bfg.jar -D '*.tar.xz' --private $DIR
-    git reflog expire --expire=now --all && git gc --prune=now --aggressive
+    echo "Now pushing to github..."
+    nice -10 git push -u origin master
 
-    echo "and pushing to github..."
-    nice -10 git push -f -u origin master
-
-    echo "Done. Mission accomplished!"
+    echo "All done, mission accomplished!"
     exit 0
 else
     echo "Something went wrong, aborting..."
