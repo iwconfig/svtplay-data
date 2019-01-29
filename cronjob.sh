@@ -79,19 +79,29 @@ for file in data/*.tar.xz; do
     tar xf "$file" -C data || { echo "Error, decompression failed!"; exit 1; }
 done
 
+echo "Running gather_data.py"
 if nice -12 ./gather_data.py; then
-    echo "Data gathering went fine. Now compressing file..."
+    echo "Data gathering went fine."
     cd $DIR/data
-    nice -10 tar cJf singles_and_episodes.tar.xz singles_and_episodes
-    nice -10 tar cJf title_pages.tar.xz title_pages
+
+    echo "Checking if uncompressed data file contains new data"
+    for file in {singles_and_episodes,title_pages}; do
+	if [ $(stat -c %s $file) -gt $(stat -c %s ${file}.bak) ]; then
+	    echo "Yes, compressing file $file"
+	    nice -10 tar cJf ${file}.tar.xz $file
+	else
+	    echo "No, not $file. Continuing..."
+	fi
+	echo "Removing uncompressed files: $file and ${file}.bak"
+	rm $file ${file}.bak
+    done
     
     echo "Compression is done. Now making commit and pushing to github..."
     nice -10 git add singles_and_episodes.tar.xz title_pages.tar.xz
     nice -10 git commit -m "Daily data update: $(date '+%Y-%m-%d %H:%M:%S')"
     nice -10 git push -u origin master
 
-    echo "Done. Now removing uncompressed files and then mission accomplished."
-    rm singles_and_episodes title_pages
+    echo "Done. Mission accomplished!"
     exit 0
 else
     echo "Something went wrong, aborting..."

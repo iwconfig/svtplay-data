@@ -80,9 +80,6 @@ def main():
             for dct in json.JSONEncoder(indent=2, ensure_ascii=False, sort_keys=True).iterencode(stream_array):
                 outfile.write(dct)
 
-        if datafile.with_suffix('.bak').is_file():
-            logging.info('Removing old file: {}'.format(datafile.with_suffix('.bak')))
-            datafile.with_suffix('.bak').unlink()
 
 if __name__ == '__main__':
     try:
