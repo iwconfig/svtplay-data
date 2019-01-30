@@ -56,8 +56,8 @@ def main():
             pass
 
     data = [
-        (singles_and_episodes, Path('../singles_and_episodes')),
-        (title_pages, Path('../title_pages'))
+        (singles_and_episodes, Path('singles_and_episodes')),
+        (title_pages, Path('title_pages'))
     ]
     
     logging.info('Data retrieval is complete')
