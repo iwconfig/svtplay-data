@@ -76,23 +76,6 @@ nice -10 git branch -D temp
 nice -10 git clean -xffd
 nice -10 git pull || echo "Error, could not pull the latest from remote repository!"
 
-echo "Downloading BFG Repo-Cleaner jar file to /tmp directory"
-curl -L -o /tmp/bfg.jar https://repo1.maven.org/maven2/com/madgag/bfg/1.13.0/bfg-1.13.0.jar
-
-echo "Removing old compressed data files from earlier commits..."
-java -jar /tmp/bfg.jar -D '*.tar.xz' --private $DIR
-git reflog expire --expire=now --all && git gc --prune=now --aggressive
-
-echo "Removing empty commits..."
-git filter-branch --tag-name-filter cat --commit-filter 'git_commit_non_empty_tree "$@"' -- --all
-git for-each-ref --format="%(refname)" refs/original/ | xargs -n 1 git update-ref -d
-
-echo "Pushing changes to remote repo"
-git push -f
-
-echo "Removing BFG Repo-Cleaner jar file..."
-rm /tmp/bfg.jar
-
 echo "Decompressing data files..."
 for file in *.tar.xz; do
     tar xf "$file" || { echo "Error, decompression failed!"; exit 1; }
@@ -117,8 +100,22 @@ if nice -12 ./src/gather_data.py; then
     nice -10 git add singles_and_episodes.tar.xz title_pages.tar.xz
     nice -10 git commit -m "Daily data update: $(date '+%Y-%m-%d %H:%M:%S')"
 
-    echo "Now pushing to github..."
-    nice -10 git push -u origin master
+    echo "Downloading BFG Repo-Cleaner jar file to /tmp directory"
+    curl -L -o /tmp/bfg.jar https://repo1.maven.org/maven2/com/madgag/bfg/1.13.0/bfg-1.13.0.jar
+
+    echo "Removing old compressed data files from earlier commits..."
+    java -jar /tmp/bfg.jar -D '*.tar.xz' --private $DIR
+    git reflog expire --expire=now --all && git gc --prune=now --aggressive
+
+    echo "Removing empty commits..."
+    git filter-branch --tag-name-filter cat --commit-filter 'git_commit_non_empty_tree "$@"' -- --all
+    git for-each-ref --format="%(refname)" refs/original/ | xargs -n 1 git update-ref -d
+
+    echo "Pushing changes to remote repo"
+    nice -10 git push -f -u origin master
+
+    echo "Removing BFG Repo-Cleaner jar file..."
+    rm /tmp/bfg.jar
 
     echo "All done, mission accomplished!"
     exit 0
