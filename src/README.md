@@ -1,5 +1,5 @@
 # svtplay-data
-Every 6th hour a list of data of all content from SVTPlay is backed up in `singles_and_episodes` file. All available title page data is also stored in `title_pages`. I made this mostly just for fun but it can be useful for retrieving information that is no longer available on SVTPlay.
+Every 6th hour a list of data of all content from SVTPlay is backed up in [../singles_and_episodes.tar.xz](../singles_and_episodes.tar.xz) file. All available title page data is also stored in [../title_pages.tar.xz](../title_pages.tar.xz). I made this mostly just for fun but it can be useful for retrieving information that is no longer available on SVTPlay.
 
 ### If you for some reason want to use this in your own fork
 Add the following rule to crontab with `crontab -e` (not the explanation tree)
