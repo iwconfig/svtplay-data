@@ -82,19 +82,17 @@ java -jar /tmp/bfg.jar -D '*.tar.xz' --private $DIR
 git reflog expire --expire=now --all && git gc --prune=now --aggressive
 echo "Pushing changes to remote repo"
 git push -f
-echo ". Removing BFG Repo-Cleaner jar file..."
+echo "Removing BFG Repo-Cleaner jar file..."
 rm /tmp/bfg.jar
 
 echo "Decompressing data files..."
-for file in data/*.tar.xz; do
-    tar xf "$file" -C data || { echo "Error, decompression failed!"; exit 1; }
+for file in *.tar.xz; do
+    tar xf "$file" || { echo "Error, decompression failed!"; exit 1; }
 done
 
 echo "Running gather_data.py..."
-if nice -12 ./gather_data.py; then
+if nice -12 ./src/gather_data.py; then
     echo "Data gathering went fine."
-    cd $DIR/data
-
     echo "Checking if uncompressed data file contains new data..."
     for file in {singles_and_episodes,title_pages}; do
 	if [ $(stat -c %s $file) -gt $(stat -c %s ${file}.bak) ]; then
