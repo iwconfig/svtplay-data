@@ -65,6 +65,8 @@ fi
 
 
 # main
+git config credential.helper store
+
 echo "Pulling a clean slate of remote git repository..."
 cd $DIR || echo "Error, could not change directory to $DIR"
 nice -10 git checkout -b temp
