@@ -106,23 +106,24 @@ if nice -12 ./src/gather_data.py; then
     nice -10 git add singles_and_episodes.tar.xz title_pages.tar.xz
     nice -10 git commit -m "Daily data update: $(date '+%Y-%m-%d %H:%M:%S')"
 
-    echo "Downloading BFG Repo-Cleaner jar file to /tmp directory"
-    curl -L -o /tmp/bfg.jar https://repo1.maven.org/maven2/com/madgag/bfg/1.13.0/bfg-1.13.0.jar || error "Could not download!"
-
-    echo "Removing old compressed data files from earlier commits..."
+    if [ ! -f /tmp/bfg.jar ]; then
+	echo "Downloading BFG Repo-Cleaner jar file to /tmp directory"
+	curl -L -o /tmp/bfg.jar https://repo1.maven.org/maven2/com/madgag/bfg/1.13.0/bfg-1.13.0.jar || error "Could not download!"
+    fi
+    
+    echo "Removing old compressed data files from earlier commits with BFG tool..."
     java -jar /tmp/bfg.jar -D '*.tar.xz' --private $DIR || error "Java execution failed!"
-    git reflog expire --expire=now --all || error "git reflog command failed! Could not cleanup reflogs."
-    git gc --prune=now --aggressive || error "git gc command failed! Could not garbage collect."
 
+    echo "Cleaning reflogs and collecting repo garbage"
+    git reflog expire --expire=now --all || error "git reflog command failed! Could not cleanup reflogs."    
+    git gc --prune=now --aggressive || error "git gc command failed! Could not garbage collect."
+    
     echo "Removing empty commits..."
     git filter-branch --tag-name-filter cat --commit-filter 'git_commit_non_empty_tree "$@"' -- --all || error "Could not remove empty commits!"
     git for-each-ref --format="%(refname)" refs/original/ | xargs -n 1 git update-ref -d || error "Could not update git references!"
 
     echo "Pushing changes to remote repo"
     nice -10 git push -f -u origin master || error "Could not push to remote repo!"
-
-    echo "Removing BFG Repo-Cleaner jar file..."
-    rm /tmp/bfg.jar || error "Could not remove /tmp/bfg.jar file!"
 
     echo "All done, mission accomplished!"
     exit 0
