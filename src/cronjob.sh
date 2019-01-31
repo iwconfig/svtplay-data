@@ -20,10 +20,16 @@ LOGFILE=/tmp/svtplay-data.log
 DIR=$HOME/scripts/svtplay-data
 
 # make echo act as a logger
-function echo() {
+function echo {
     msg="$(date '+%Y-%m-%d %H:%M:%S'): $@"
     builtin echo "$msg" >> $LOGFILE
     builtin echo -e "\r$msg"
+}
+
+# log errors
+function error {
+    echo "ERROR: $@"
+    exit 1
 }
 
 # trap cleanup
@@ -68,32 +74,32 @@ fi
 git config credential.helper store
 
 echo "Pulling a clean slate of remote git repository..."
-cd $DIR || echo "Error, could not change directory to $DIR"
+cd $DIR || error "Could not change directory to $DIR"
 nice -10 git checkout -b temp
 nice -10 git branch -D master
 nice -10 git checkout master
 nice -10 git branch -D temp
 nice -10 git clean -xffd
-nice -10 git pull || echo "Error, could not pull the latest from remote repository!"
+nice -10 git pull || error "Could not pull the latest from remote repository!"
 
 echo "Decompressing data files..."
 for file in *.tar.xz; do
-    tar xf "$file" || { echo "Error, decompression failed!"; exit 1; }
+    tar xf "$file" || error "Decompression failed!"
 done
 
 echo "Running gather_data.py..."
 if nice -12 ./src/gather_data.py; then
     echo "Data gathering went fine."
-    echo "Checking if uncompressed data file contains new data..."
+    function get_size { stat -c %s $1 || error "Could not get size of $1!"; }
     for file in {singles_and_episodes,title_pages}; do
-	if [ $(stat -c %s $file) -gt $(stat -c %s ${file}.bak) ]; then
-	    echo "Yes, compressing file $file"
-	    nice -10 tar cJf ${file}.tar.xz $file
+	if [ $(get_size $file) -gt $(get_size ${file}.bak) ]; then
+	    echo "Compressing $file"
+	    nice -10 tar cJf ${file}.tar.xz $file || error "Comression failed!"
 	else
-	    echo "No, not $file. Continuing..."
+	    echo "$file is unchanged. Leaving ${file}.tar.xz as is..."
 	fi
 	echo "Removing uncompressed files: $file and ${file}.bak..."
-	rm $file ${file}.bak
+	rm $file ${file}.bak || error "Could not remove files!"
     done
 
     echo "Check/compression is done. Now making commit..."
@@ -101,21 +107,22 @@ if nice -12 ./src/gather_data.py; then
     nice -10 git commit -m "Daily data update: $(date '+%Y-%m-%d %H:%M:%S')"
 
     echo "Downloading BFG Repo-Cleaner jar file to /tmp directory"
-    curl -L -o /tmp/bfg.jar https://repo1.maven.org/maven2/com/madgag/bfg/1.13.0/bfg-1.13.0.jar
+    curl -L -o /tmp/bfg.jar https://repo1.maven.org/maven2/com/madgag/bfg/1.13.0/bfg-1.13.0.jar || error "Could not download!"
 
     echo "Removing old compressed data files from earlier commits..."
-    java -jar /tmp/bfg.jar -D '*.tar.xz' --private $DIR
-    git reflog expire --expire=now --all && git gc --prune=now --aggressive
+    java -jar /tmp/bfg.jar -D '*.tar.xz' --private $DIR || error "Java execution failed!"
+    git reflog expire --expire=now --all || error "git reflog command failed! Could not cleanup reflogs."
+    git gc --prune=now --aggressive || error "git gc command failed! Could not garbage collect."
 
     echo "Removing empty commits..."
-    git filter-branch --tag-name-filter cat --commit-filter 'git_commit_non_empty_tree "$@"' -- --all
-    git for-each-ref --format="%(refname)" refs/original/ | xargs -n 1 git update-ref -d
+    git filter-branch --tag-name-filter cat --commit-filter 'git_commit_non_empty_tree "$@"' -- --all || error "Could not remove empty commits!"
+    git for-each-ref --format="%(refname)" refs/original/ | xargs -n 1 git update-ref -d || error "Could not update git references!"
 
     echo "Pushing changes to remote repo"
-    nice -10 git push -f -u origin master
+    nice -10 git push -f -u origin master || error "Could not push to remote repo!"
 
     echo "Removing BFG Repo-Cleaner jar file..."
-    rm /tmp/bfg.jar
+    rm /tmp/bfg.jar || error "Could not remove /tmp/bfg.jar file!"
 
     echo "All done, mission accomplished!"
     exit 0
