@@ -101,7 +101,7 @@ if nice -12 ./src/gather_data.py; then
 
     echo "Check/compression is done. Now making commit..."
     git add singles_and_episodes.tar.xz title_pages.tar.xz
-    git commit -m "Daily data update: $(date '+%Y-%m-%d %H:%M:%S')"
+    git commit -m "Daily data update: $(date '+%Y-%m-%d %H:%M:%S')" -m "These archives contain all data collected since 2019-01-23 at circa 21:00 hours."
 
     if [ ! -f /tmp/bfg.jar ]; then
 	echo "Downloading BFG Repo-Cleaner jar file to /tmp directory"
