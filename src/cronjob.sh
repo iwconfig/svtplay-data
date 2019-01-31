@@ -75,12 +75,12 @@ git config credential.helper store
 
 echo "Pulling a clean slate of remote git repository..."
 cd $DIR || error "Could not change directory to $DIR"
-nice -10 git checkout -b temp
-nice -10 git branch -D master
-nice -10 git checkout master
-nice -10 git branch -D temp
-nice -10 git clean -xffd
-nice -10 git pull || error "Could not pull the latest from remote repository!"
+git checkout -b temp
+git branch -D master
+git checkout master
+git branch -D temp
+git clean -xffd
+git pull || error "Could not pull the latest from remote repository!"
 
 echo "Decompressing data files..."
 for file in *.tar.xz; do
@@ -94,7 +94,7 @@ if nice -12 ./src/gather_data.py; then
     for file in {singles_and_episodes,title_pages}; do
 	if [ $(get_size $file) -gt $(get_size ${file}.bak) ]; then
 	    echo "Compressing $file"
-	    nice -10 tar cJf ${file}.tar.xz $file || error "Comression failed!"
+	    tar cJf ${file}.tar.xz $file || error "Comression failed!"
 	else
 	    echo "$file is unchanged. Leaving ${file}.tar.xz as is..."
 	fi
@@ -103,8 +103,8 @@ if nice -12 ./src/gather_data.py; then
     done
 
     echo "Check/compression is done. Now making commit..."
-    nice -10 git add singles_and_episodes.tar.xz title_pages.tar.xz
-    nice -10 git commit -m "Daily data update: $(date '+%Y-%m-%d %H:%M:%S')"
+    git add singles_and_episodes.tar.xz title_pages.tar.xz
+    git commit -m "Daily data update: $(date '+%Y-%m-%d %H:%M:%S')"
 
     if [ ! -f /tmp/bfg.jar ]; then
 	echo "Downloading BFG Repo-Cleaner jar file to /tmp directory"
@@ -112,7 +112,7 @@ if nice -12 ./src/gather_data.py; then
     fi
     
     echo "Removing old compressed data files from earlier commits with BFG tool..."
-    java -jar /tmp/bfg.jar -D '*.tar.xz' --private $DIR || error "Java execution failed!"
+    nice -12 java -jar /tmp/bfg.jar -D '*.tar.xz' --private $DIR || error "Java execution failed!"
 
     echo "Cleaning reflogs and collecting repo garbage"
     git reflog expire --expire=now --all || error "git reflog command failed! Could not cleanup reflogs."    
@@ -123,7 +123,7 @@ if nice -12 ./src/gather_data.py; then
     git for-each-ref --format="%(refname)" refs/original/ | xargs -n 1 git update-ref -d || error "Could not update git references!"
 
     echo "Pushing changes to remote repo"
-    nice -10 git push -f -u origin master || error "Could not push to remote repo!"
+    git push -f -u origin master || error "Could not push to remote repo!"
 
     echo "All done, mission accomplished!"
     exit 0
