@@ -72,15 +72,12 @@ fi
 
 # main
 git config credential.helper store
+cd $DIR || error "Could not change directory to $DIR"
 
 echo "Pulling a clean slate of remote git repository..."
-cd $DIR || error "Could not change directory to $DIR"
-git checkout -b temp
-git branch -D master
-git checkout master
-git branch -D temp
 git clean -xffd
-git pull || error "Could not pull the latest from remote repository!"
+git fetch --all || error "Could not fetch the latest from remote repository!"
+git reset --hard origin/master
 
 echo "Decompressing data files..."
 for file in *.tar.xz; do
