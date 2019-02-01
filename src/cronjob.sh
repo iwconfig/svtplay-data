@@ -117,7 +117,7 @@ if nice -12 ./src/gather_data.py; then
     
     echo "Removing empty commits..."
     git filter-branch --tag-name-filter cat --commit-filter 'git_commit_non_empty_tree "$@"' -- --all || error "Could not remove empty commits!"
-    git for-each-ref --format="%(refname)" refs/original/ | xargs -n 1 git update-ref -d || error "Could not update git references!"
+    git for-each-ref --format="%(refname)" refs/original/ | xargs -r -n 1 git update-ref -d || error "Could not update git references!"
 
     echo "Pushing changes to remote repo"
     git push -f -u origin master || error "Could not push to remote repo!"
