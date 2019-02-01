@@ -33,7 +33,7 @@ def stream_handler(data):
 
 def json_cleanup(data):
     for x in 'message', 'messages':
-        if data.get(x):
+        if x in data:
             del data[x]
     return data
 
@@ -69,7 +69,7 @@ def main():
             logging.info('Processing file: {}'.format(datafile.with_suffix('.bak')))
             
             with datafile.with_suffix('.bak').open(encoding='utf8') as bakfile:
-                bakdata = json.load(bakfile)
+                bakdata = [json_cleanup(x) for x in json.load(bakfile)]
 
             data.extend(bakdata)
             data = list({v.get('id') or v.get('articleId'):v for v in data}.values())
