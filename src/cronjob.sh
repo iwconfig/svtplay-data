@@ -75,7 +75,7 @@ git config credential.helper store
 cd $DIR || error "Could not change directory to $DIR"
 
 echo "Pulling a clean slate of remote git repository..."
-git clean -xffd
+git checkout master ## ensure we're on master branch
 git fetch --all || error "Could not fetch the latest from remote repository!"
 git reset --hard origin/master
 
@@ -87,6 +87,7 @@ done
 echo "Running gather_data.py..."
 if nice -12 ./src/gather_data.py; then
     echo "Data gathering went fine."
+
     function get_size { stat -c %s $1 || error "Could not get size of $1!"; }
     for file in {singles_and_episodes,title_pages}; do
 	if [ $(get_size $file) -gt $(get_size ${file}.bak) ]; then
@@ -99,28 +100,35 @@ if nice -12 ./src/gather_data.py; then
 	rm $file ${file}.bak || error "Could not remove files!"
     done
 
-    echo "Check/compression is done. Now making commit..."
+    echo "Making commit..."
     git add singles_and_episodes.tar.xz title_pages.tar.xz
     git commit -m "Daily data update: $(date '+%Y-%m-%d %H:%M:%S')" -m "These archives contain all data collected since 2019-01-23 at circa 21:00 hours."
 
+    echo "Pushing changes to remote repo"
+    git push -f -u origin master || error "Could not push to remote repo!"
+
+    echo "Now time for some cleaning..."
     if [ ! -f /tmp/bfg.jar ]; then
 	echo "Downloading BFG Repo-Cleaner jar file to /tmp directory"
 	curl -L -o /tmp/bfg.jar https://repo1.maven.org/maven2/com/madgag/bfg/1.13.0/bfg-1.13.0.jar || error "Could not download!"
     fi
-    
+
+    git fetch --all
+    git reset --hard origin/master
+
     echo "Removing old compressed data files from earlier commits with BFG tool..."
-    nice -12 java -jar /tmp/bfg.jar -D '*.tar.xz' --private $DIR || error "Java execution failed!"
+    nice -12 java -jar /tmp/bfg.jar -D '*.tar.xz' --private . || error "Java execution failed!"
 
     echo "Cleaning reflogs and collecting repo garbage"
-    git reflog expire --expire=now --all || error "git reflog command failed! Could not cleanup reflogs."    
+    git reflog expire --expire=now --all || error "git reflog command failed! Could not cleanup reflogs."
     git gc --prune=now --aggressive || error "git gc command failed! Could not garbage collect."
-    
+
     echo "Removing empty commits..."
     git filter-branch --tag-name-filter cat --commit-filter 'git_commit_non_empty_tree "$@"' -- --all || error "Could not remove empty commits!"
     git for-each-ref --format="%(refname)" refs/original/ | xargs -r -n 1 git update-ref -d || error "Could not update git references!"
 
-    echo "Pushing changes to remote repo"
-    git push -f -u origin master || error "Could not push to remote repo!"
+    echo "Force pushing cleaned repo to remote"
+    git push -f
 
     echo "All done, mission accomplished!"
     exit 0
