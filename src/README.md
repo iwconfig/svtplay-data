@@ -1,5 +1,5 @@
 # svtplay-data
-Every 6th hour a list of data of all content from SVTPlay is backed up in [../singles_and_episodes.tar.xz](../singles_and_episodes.tar.xz) file. All available title page data is also stored in [../title_pages.tar.xz](../title_pages.tar.xz). I made this mostly just for fun but it can be useful for retrieving information that is no longer available on SVTPlay.
+Every 6th hour a list of data of all content from SVTPlay is backed up in [../singles_and_episodes.json.xz](../singles_and_episodes.json.xz) file. All available title page data is also stored in [../title_pages.json.xz](../title_pages.json.xz). I made this mostly just for fun but it can be useful for retrieving information that is no longer available on SVTPlay.
 
 ### If you for some reason want to use this in your own fork
 Add the following rule to crontab with `crontab -e` (not the explanation tree)
@@ -20,6 +20,7 @@ Next, run this and enter your credentials
 
 and from here on after you login automatically when pushing to repo.
 
+I also use zram in order to optimize LZMA/LZMA2 compression which consumes a lot of memory. Just use [this](https://github.com/novaspirit/rpi_zram) and you're good to go.
 
 ## TODO/CONSIDER
 

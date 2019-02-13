@@ -56,20 +56,21 @@ def main():
             pass
 
     data = [
-        (singles_and_episodes, Path('singles_and_episodes')),
-        (title_pages, Path('title_pages'))
+        (singles_and_episodes, Path('singles_and_episodes.json')),
+        (title_pages, Path('title_pages.json'))
     ]
     
     logging.info('Data retrieval is complete')
     
     for data, datafile in data:
         if datafile.is_file():
-            datafile.rename(datafile.with_suffix('.bak'))
+            bakfile = datafile.with_suffix('.json.bak')
+            datafile.rename(bakfile)
 
-            logging.info('Processing file: {}'.format(datafile.with_suffix('.bak')))
+            logging.info('Processing file: {}'.format(bakfile))
             
-            with datafile.with_suffix('.bak').open(encoding='utf8') as bakfile:
-                bakdata = [json_cleanup(x) for x in json.load(bakfile)]
+            with bakfile.open(encoding='utf8') as f:
+                bakdata = [json_cleanup(x) for x in json.load(f)]
 
             data.extend(bakdata)
             data = list({v.get('id') or v.get('articleId'):v for v in data}.values())

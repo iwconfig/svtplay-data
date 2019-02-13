@@ -80,8 +80,8 @@ git fetch --all || error "Could not fetch the latest from remote repository!"
 git reset --hard origin/master
 
 echo "Decompressing data files..."
-for file in *.tar.xz; do
-    tar xf "$file" || error "Decompression failed!"
+for file in *.json.xz; do
+    xz -dfk "$file" || error "Decompression failed!"
 done
 
 echo "Running gather_data.py..."
@@ -89,10 +89,10 @@ if nice -12 ./src/gather_data.py; then
     echo "Data gathering went fine."
 
     function get_size { stat -c %s $1 || error "Could not get size of $1!"; }
-    for file in {singles_and_episodes,title_pages}; do
+    for file in {singles_and_episodes.json,title_pages.json}; do
 	if [ $(get_size $file) -gt $(get_size ${file}.bak) ]; then
 	    echo "Compressing $file"
-	    tar cJf ${file}.tar.xz $file || error "Comression failed!"
+	    xz -vvkf9eT2 $file || error "Comression failed!"
 	else
 	    echo "$file is unchanged. Leaving ${file}.tar.xz as is..."
 	fi
@@ -101,7 +101,7 @@ if nice -12 ./src/gather_data.py; then
     done
 
     echo "Making commit..."
-    git add singles_and_episodes.tar.xz title_pages.tar.xz
+    git add singles_and_episodes.json.xz title_pages.json.xz
     git commit -m "Daily data update: $(date '+%Y-%m-%d %H:%M:%S')" -m "These archives contain all data collected since 2019-01-23 at circa 21:00 hours."
 
     echo "Pushing changes to remote repo"
@@ -117,7 +117,7 @@ if nice -12 ./src/gather_data.py; then
     git reset --hard origin/master
 
     echo "Removing old compressed data files from earlier commits with BFG tool..."
-    nice -12 java -jar /tmp/bfg.jar -D '*.tar.xz' --private . || error "Java execution failed!"
+    nice -12 java -jar /tmp/bfg.jar -D '*.json.xz' --private . || error "Java execution failed!"
 
     echo "Cleaning reflogs and collecting repo garbage"
     git reflog expire --expire=now --all || error "git reflog command failed! Could not cleanup reflogs."
