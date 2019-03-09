@@ -20,9 +20,16 @@ Next, run this and enter your credentials
 
 and from here on after you login automatically when pushing to repo.
 
+The [.githooks/pre-commit](.githooks/pre-commit) hook verifies the json files before comitting using jq or python. Apply it by running:
+
+    git config --local core.hooksPath "$(git rev-parse --show-toplevel)/src/.githooks/"
+
 I also use zram in order to optimize LZMA/LZMA2 compression which consumes a lot of memory. Just use [this](https://github.com/novaspirit/rpi_zram) and you're good to go.
+
+To get notifications when an error occur, I wrote a little daemon which listens on port 15328 for incoming error messages and forwards them to my notification daemon. This is done with netcat and the daemon script is expected to sit in the background on the receiving LAN computer.
 
 ## TODO/CONSIDER
 
 * ~apply compression~ or
 * use sqlite database (have a look at [cannadayr/git-sqlite](https://github.com/cannadayr/git-sqlite))
+* use email notifications

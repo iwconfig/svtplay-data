@@ -1,0 +1,25 @@
+#!/bin/bash
+# This file need to have execution rights: chmod u+x pre-commit.
+# Have the jq utility or at least python installed to be able to parse the json.
+
+if which jq &>/dev/null; then
+    cmd="jq any"
+elif which python &>/dev/null; then
+     cmd="python -m json.tool"
+else
+    echo "You need to install jq or python"
+    exit 1
+fi
+
+for FILE in $(git diff-index --name-status HEAD -- | cut -c3-); do
+    if [ ${FILE: -8} == ".json.xz" ]; then
+        echo -e "  Validating $FILE..."
+        xz -dkc $FILE | $cmd &>/dev/null
+        if [[ $? -ne 0 ]]; then
+	  msg="JSON parser failed!"
+          echo -e "\tERROR: $msg"
+	  echo "$msg" | nc debian.local 15328
+	  exit 1
+        fi
+    fi
+done
