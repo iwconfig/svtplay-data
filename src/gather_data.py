@@ -4,13 +4,20 @@ from pathlib import Path
 from datetime import datetime
 import json
 import svtapi
-import traceback
 import logging
+import socket
 
 logging.basicConfig(filename='/tmp/svtplay-data.log',
                     level=logging.DEBUG,
                     format='%(asctime)s: %(message)s',
                     datefmt='%Y-%m-%d %H:%M:%S')
+
+def notify_error(msg, *args, **kwargs):
+    """ Dependent on notify-error-daemon.sh on the other LAN computer """
+    socket.create_connection(('debian.local', 15328)).sendall(msg.encode())
+    logging.root.error('ERROR! Message: {}'.format(msg), exc_info=True, *args, **kwargs)
+
+logging.error = notify_error
 
 class StreamArray(list):
     def __init__(self, generator):
@@ -88,6 +95,5 @@ if __name__ == '__main__':
         main()
         logging.info('ENDED gathering of data')
     except BaseException as error:
-        logging.error('ERROR! Message: {}'.format(error))
-        logging.error(traceback.format_exc())
+        logging.error(str(error))
         raise

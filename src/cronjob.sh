@@ -29,6 +29,9 @@ function echo {
 # log errors
 function error {
     echo "ERROR: $@"
+    # Send a notification also. Dependent on notify-error-daemon.sh on
+    # the other LAN computer.
+    builtin echo "$@" | nc debian.local 15328
     exit 1
 }
 
