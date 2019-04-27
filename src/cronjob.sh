@@ -14,6 +14,8 @@
 ## Enter your credentials to login automatically
 ## from here on after.
 
+set -e
+
 LOCKDIR=/tmp/svtplay-data.lock
 PIDFILE=$LOCKDIR/pid
 LOGFILE=/tmp/svtplay-data.log
