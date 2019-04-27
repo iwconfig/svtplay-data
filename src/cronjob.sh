@@ -76,9 +76,9 @@ fi
 
 
 # main
+cd $DIR || error "Could not change directory to $DIR"
 git config credential.helper store
 git config --local core.hooksPath "$(git rev-parse --show-toplevel)/src/.githooks/"
-cd $DIR || error "Could not change directory to $DIR"
 
 echo "Pulling a clean slate of remote git repository..."
 git checkout master ## ensure we're on master branch
