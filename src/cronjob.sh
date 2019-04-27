@@ -107,8 +107,10 @@ if nice -12 ./src/gather_data.py; then
     done
 
     echo "Making commit..."
-    git add singles_and_episodes.json.xz title_pages.json.xz
-    git commit -m "Daily data update: $(date '+%Y-%m-%d %H:%M:%S')" -m "These archives contain all data collected since 2019-01-23 at circa 21:00 hours."
+    { git add singles_and_episodes.json.xz title_pages.json.xz && \
+      git commit \
+          -m "Daily data update: $(date '+%Y-%m-%d %H:%M:%S')" \
+          -m "These archives contain all data collected since 2019-01-23 at circa 21:00 hours."; } || error "Could not make commit!"
 
     echo "Pushing changes to remote repo"
     git push -f -u origin master || error "Could not push to remote repo!"
